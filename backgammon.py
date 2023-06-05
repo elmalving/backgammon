@@ -1,12 +1,9 @@
-from GUI.main import GUI, pygame
-from piece import Piece
-from button import Button
+import pygame
 from dice import Dice
 
 
-class Backgammon(GUI):
+class Backgammon:
     def __init__(self, mode):
-        super().__init__()
         self.mode = mode
         self.player = 1
         self.rolled = False
@@ -21,57 +18,6 @@ class Backgammon(GUI):
         self.pieces[11] = self.pieces[18] = (5, 0)
         self.pieces[16] = (3, 0)
         self.pieces[23] = (2, 1)
-
-        white_checker = pygame.transform.scale(pygame.image.load('img/white.png'),
-                                               (self.width // 20, self.height // 12))
-        blue_checker = pygame.transform.scale(pygame.image.load('img/blue.png'),
-                                              (self.width // 20, self.height // 12))
-
-        checker_images = {0: white_checker, 1: blue_checker}
-
-        for column in range(24):
-            piece_capture = []
-            amount, player = self.pieces[column][0], self.pieces[column][1]
-            for row in range(amount):
-                piece_capture.append(Button(self.screen, self.get_specified_coord(column, row),
-                                            checker_images[player].get_width(),
-                                            checker_images[player].get_height(),
-                                            image=checker_images[player]))
-            self.pieces[column] = Piece(player=player, column=column,
-                                        coord=list(self.get_coord(column)), capture=piece_capture)
-
-    def get_specified_coord(self, column, row):
-        if column < 6:
-            x = self.width - self.width // 16 - column * 100
-        elif column < 12:
-            x = self.width - self.width // 20 - (column + 1) * 100
-        elif column < 18:
-            x = self.width // 80 + column % 12 * 100
-        else:
-            x = (column % 12 + 1) * 100
-        if column < 12:
-            y = row * self.height // 12
-        else:
-            y = self.height - (row + 1) * self.height // 12
-
-        return x, y
-
-    def get_coord(self, column):
-        for row in range(5):
-            if column < 6:
-                x = self.width - self.width // 16 - column * 100
-            elif column < 12:
-                x = self.width - self.width // 20 - (column + 1) * 100
-            elif column < 18:
-                x = self.width // 80 + column % 12 * 100
-            else:
-                x = (column % 12 + 1) * 100
-            if column < 12:
-                y = row * self.height // 12
-            else:
-                y = self.height - (row + 1) * self.height // 12
-
-            yield x, y
 
     def roll(self):
         if not self.rolled:
