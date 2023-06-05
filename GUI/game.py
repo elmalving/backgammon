@@ -1,12 +1,14 @@
-import pygame
+from GUI.main import GUI, pygame
 from backgammon import Backgammon
+from piece import Piece
 from button import Button
 from tkinter.messagebox import askyesno
 
 
-class Game(Backgammon):
+class Game(GUI, Backgammon):
     def __init__(self, mode):
-        super().__init__(mode)
+        GUI.__init__(self)
+        Backgammon.__init__(self, mode)
         self.is_dragging = False
 
         self.dice_button = Button(self.screen, (self.width // 2 - self.width // 20,
@@ -17,6 +19,60 @@ class Game(Backgammon):
                                  image=(pygame.image.load(self.dice[0].image))), Button(
             self.screen, (self.width // 2 - self.width // 40, self.height // 2 + self.height // 5 - self.width // 20),
             image=pygame.image.load(self.dice[1].image))
+
+        self.init_board()
+
+    def init_board(self):
+        white_checker = pygame.transform.scale(pygame.image.load('img/white.png'),
+                                               (self.width // 20, self.height // 12))
+        blue_checker = pygame.transform.scale(pygame.image.load('img/blue.png'),
+                                              (self.width // 20, self.height // 12))
+
+        checker_images = {0: white_checker, 1: blue_checker}
+
+        for column in range(24):
+            piece_capture = []
+            amount, player = self.pieces[column][0], self.pieces[column][1]
+            for row in range(amount):
+                piece_capture.append(Button(self.screen, self.get_specified_coord(column, row),
+                                            checker_images[player].get_width(),
+                                            checker_images[player].get_height(),
+                                            image=checker_images[player]))
+            self.pieces[column] = Piece(player=player, column=column,
+                                        coord=list(self.get_coord(column)), capture=piece_capture)
+
+    def get_specified_coord(self, column, row):
+        if column < 6:
+            x = self.width - self.width // 16 - column * 100
+        elif column < 12:
+            x = self.width - self.width // 20 - (column + 1) * 100
+        elif column < 18:
+            x = self.width // 80 + column % 12 * 100
+        else:
+            x = (column % 12 + 1) * 100
+        if column < 12:
+            y = row * self.height // 12
+        else:
+            y = self.height - (row + 1) * self.height // 12
+
+        return x, y
+
+    def get_coord(self, column):
+        for row in range(5):
+            if column < 6:
+                x = self.width - self.width // 16 - column * 100
+            elif column < 12:
+                x = self.width - self.width // 20 - (column + 1) * 100
+            elif column < 18:
+                x = self.width // 80 + column % 12 * 100
+            else:
+                x = (column % 12 + 1) * 100
+            if column < 12:
+                y = row * self.height // 12
+            else:
+                y = self.height - (row + 1) * self.height // 12
+
+            yield x, y
 
     def load(self):
         bg = pygame.transform.scale(pygame.image.load('img/backgammon.png'), (self.width, self.height))
@@ -48,24 +104,24 @@ class Game(Backgammon):
                                 if self.player == item.player:
                                     self.is_dragging = True
                                     self.dragging_block = item
-            # if event.button == 2:
-            #     if self.check_bearing_off():
-            #         if self.mouse[1] < self.height // 2:
-            #             for item in self.pieces[:12]:
-            #                 if item.capture:
-            #                     if item.capture[-1].touched(self.mouse):
-            #                         if self.player == item.player:
-            #                             if askyesno('Bearing off', 'Are you sure?'):
-            #                                 item.capture.remove(item.capture[-1])
-            #                                 self.moves.remove(min(self.moves))
-            #         else:
-            #             for item in self.pieces[12:]:
-            #                 if item.capture:
-            #                     if item.capture[-1].touched(self.mouse):
-            #                         if self.player == item.player:
-            #                             if askyesno('Bearing off', 'Are you sure?'):
-            #                                 item.capture.remove(item.capture[-1])
-            #                                 self.moves.remove(min(self.moves))
+            if event.button == 2:
+                if self.check_bearing_off():
+                    if self.mouse[1] < self.height // 2:
+                        for item in self.pieces[:12]:
+                            if item.capture:
+                                if item.capture[-1].touched(self.mouse):
+                                    if self.player == item.player:
+                                        if askyesno('Bearing off', 'Are you sure?'):
+                                            item.capture.remove(item.capture[-1])
+                                            self.moves.remove(min(self.moves))
+                    else:
+                        for item in self.pieces[12:]:
+                            if item.capture:
+                                if item.capture[-1].touched(self.mouse):
+                                    if self.player == item.player:
+                                        if askyesno('Bearing off', 'Are you sure?'):
+                                            item.capture.remove(item.capture[-1])
+                                            self.moves.remove(min(self.moves))
 
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1 and self.is_dragging:
